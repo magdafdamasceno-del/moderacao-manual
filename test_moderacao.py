@@ -24,8 +24,9 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Dados da Reclamação")
-    descricao = st.text_area("Cole aqui o Relato/Descrição do Cliente:", height=250)
-    replica = st.text_area("Cole a Réplica (Se houver, para casos de reanálise):", height=150)
+    descricao = st.text_area("Cole aqui o Relato/Descrição do Cliente:", height=180)
+    resposta_atual = st.text_area("Resposta Pública da Empresa (Se houver ou rascunho):", height=120)
+    replica = st.text_area("Cole a Réplica (Se houver, para casos de reanálise):", height=100)
     
     botao_gerar = st.button("✨ Criar Resposta Blindada")
 
@@ -41,28 +42,29 @@ with col2:
             with st.spinner("Analisando o manual do RA e blindando o texto..."):
                 prompt_sistema = f"""
                 Você é um redator especialista em atendimento de alta performance e defesa corporativa no Reclame AQUI.
-                Sua tarefa é ler o relato do cliente (e a réplica se houver) e criar uma RESPOSTA PÚBLICA que blinde a empresa para uma futura moderação na categoria "A empresa não violou o direito do cliente" ou "Este é um caso de fraude".
+                Sua tarefa é analisar o caso atual e criar (ou aprimorar) uma RESPOSTA PÚBLICA que blinde a empresa para uma futura moderação na categoria "A empresa não violou o direito do cliente" ou "Este é um caso de fraude".
+
+                [CONTEXTO DO CASO ENVIADO]
+                - RELATO DO CLIENTE: {descricao}
+                - RESPOSTA ATUAL DA EMPRESA (SE HOUVER): {resposta_atual}
+                - RÉPLICA DO CLIENTE (SE HOUVER): {replica}
 
                 [REGRAS DE OURO DO MANUAL DO RA PARA INCLUIR NA RESPOSTA]
                 1. Se o caso envolver regras de promoção ou termos de uso, cite termos técnicos, itens exatos do regulamento e dados numéricos/fatos de forma incontestável.
                 2. Se o erro foi do cliente (perda de prazos, falta de dados), evidencie isso de forma extremamente educada e factual.
-                3. NUNCA use frases genéricas como "enviamos um e-mail". O robô do RA exige respostas condizentes no conteúdo público.
-                4. EVITE adjetivos ou lamentações excessivas que o robô do RA interprete como "Falha no Atendimento" ou assunção de culpa por erros operacionais.
-
-                DADOS ENVIADOS:
-                - RELATO DO CLIENTE: {descricao}
-                - RÉPLICA DO CLIENTE: {replica}
+                3. Se uma resposta anterior da empresa já foi enviada, analise se ela foi fraca ou se abriu brechas para a réplica do cliente, e corrija isso na nova proposta.
+                4. NUNCA use frases genéricas como "enviamos um e-mail". O robô do RA exige respostas condizentes no conteúdo público.
+                5. EVITE adjetivos ou lamentações excessivas que o robô do RA interprete como "Falha no Atendimento" ou assunção de culpa por erros operacionais.
 
                 Gere o retorno estruturado assim:
                 ### 🛑 Alerta de Risco de Moderação
-                (Diga se o relato tem risco de carimbo CO06 (Divergência) ou CO01 (Inelegível) por falha operacional, ou se a chance de moderação futura é ALTA).
+                (Diga se o relato tem risco de carimbo CO06 (Divergência) ou CO01 (Inelegível) por falha operacional, avalie se a resposta anterior abriu brechas e dê a chance de moderação futura).
 
                 ### 📝 Resposta Pública Pronta (Copie e Cole)
-                (Insira aqui o texto completo da resposta blindada, polida, profissional e factual, pronta para publicar).
+                (Insira aqui o texto completo da resposta blindada, polida, profissional e factual, pronta para publicar ou usar como tréplica).
                 """
                 
                 try:
-                    # Roda usando o modelo estável mais recente
                     response = client.models.generate_content(
                         model='gemini-2.0-flash',
                         contents=prompt_sistema,
